@@ -85,7 +85,7 @@ define :puma_config, owner: nil, group: nil, directory: nil, puma_directory: nil
   template "puma_kill.sh" do
     source "puma_kill.sh.erb"
     path "#{params[:puma_directory]}/puma_kill.sh"
-    cookbook "puma"
+    cookbook params[:config_cookbook]
     mode "0755"
     owner params[:owner] if params[:owner]
     group params[:group] if params[:group]
@@ -95,7 +95,7 @@ define :puma_config, owner: nil, group: nil, directory: nil, puma_directory: nil
   template "puma_start.sh" do
     source "puma_start.sh.erb"
     path "#{params[:puma_directory]}/puma_start.sh"
-    cookbook "puma"
+    cookbook params[:config_cookbook]
     mode "0755"
     owner params[:owner] if params[:owner]
     group params[:group] if params[:group]
@@ -105,7 +105,7 @@ define :puma_config, owner: nil, group: nil, directory: nil, puma_directory: nil
   template "puma_phased_restart.sh" do
     source "puma_phased_restart.sh.erb"
     path "#{params[:puma_directory]}/puma_phased_restart.sh"
-    cookbook "puma"
+    cookbook params[:config_cookbook]
     mode "0755"
     owner params[:owner] if params[:owner]
     group params[:group] if params[:group]
@@ -115,7 +115,7 @@ define :puma_config, owner: nil, group: nil, directory: nil, puma_directory: nil
   template "puma_restart.sh" do
     source "puma_restart.sh.erb"
     path "#{params[:puma_directory]}/puma_restart.sh"
-    cookbook "puma"
+    cookbook params[:config_cookbook]
     mode "0755"
     owner params[:owner] if params[:owner]
     group params[:group] if params[:group]
@@ -134,7 +134,7 @@ define :puma_config, owner: nil, group: nil, directory: nil, puma_directory: nil
     template "/etc/init/#{puma_params[:name]}-puma.conf" do
       user "root"
       group "root"
-      cookbook "puma"
+      cookbook params[:config_cookbook]
       source "upstart.erb"
       mode "0644"
       variables puma_params
@@ -151,17 +151,16 @@ define :puma_config, owner: nil, group: nil, directory: nil, puma_directory: nil
     end
   end
 
-
-  logrotate_app puma_params[:name] do
-    cookbook "logrotate"
-    path [ puma_params[:stdout_redirect], puma_params[:stderr_redirect] ]
-    frequency "daily"
-    rotate 30
-    size "5M"
-    options ["missingok", "compress", "delaycompress", "notifempty", "dateext"]
-    variables puma_params
-    only_if params[:logrotate]
+  if params[:logrotate]
+    logrotate_app puma_params[:name] do
+      cookbook "logrotate"
+      path [ puma_params[:stdout_redirect], puma_params[:stderr_redirect] ]
+      frequency "daily"
+      rotate 30
+      size "5M"
+      options ["missingok", "compress", "delaycompress", "notifempty", "dateext"]
+      variables puma_params
+      only_if params[:logrotate]
+    end
   end
-
 end
-
